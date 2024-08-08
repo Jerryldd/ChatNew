@@ -31,6 +31,8 @@ export function ChatItem(props: {
   index: number;
   narrow?: boolean;
   mask: Mask;
+  appName?: string;
+
 }) {
   const draggableRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -81,6 +83,7 @@ export function ChatItem(props: {
                 <div className={styles["chat-item-count"]}>
                   {Locale.ChatItem.ChatItemCount(props.count)}
                 </div>
+                <span>{props.appName}</span>
                 <div className={styles["chat-item-date"]}>{props.time}</div>
               </div>
             </>
@@ -102,7 +105,7 @@ export function ChatItem(props: {
   );
 }
 
-export function ChatList(props: { narrow?: boolean }) {
+export function ChatList(props: { narrow?: boolean}) {
   const [sessions, selectedIndex, selectSession, moveSession] = useChatStore(
     (state) => [
       state.sessions,
@@ -163,6 +166,7 @@ export function ChatList(props: { narrow?: boolean }) {
                 }}
                 narrow={props.narrow}
                 mask={item.mask}
+                appName={item.appName}
               />
             ))}
             {provided.placeholder}

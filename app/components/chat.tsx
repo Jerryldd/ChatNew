@@ -104,6 +104,7 @@ import { ExportMessageModal } from "./exporter";
 import { getClientConfig } from "../config/client";
 import { useAllModels } from "../utils/hooks";
 import { MultimodalContent } from "../client/api";
+import { Avatar as AntdAvatar } from 'antd';
 
 const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
   loading: () => <LoadingIcon />,
@@ -765,6 +766,7 @@ function _Chat() {
 
   const chatStore = useChatStore();
   const session = chatStore.currentSession();
+  const appIcon = session.appIcon || "default-icon-url";
   const config = useAppConfig();
   const fontSize = config.fontSize;
   const fontFamily = config.fontFamily;
@@ -1445,12 +1447,11 @@ function _Chat() {
                           {["system"].includes(message.role) ? (
                             <Avatar avatar="2699-fe0f" />
                           ) : (
-                            <MaskAvatar
-                              avatar={session.mask.avatar}
-                              model={
-                                message.model || session.mask.modelConfig.model
-                              }
-                            />
+                            appIcon ? (
+                              <AntdAvatar src={appIcon} alt="app icon" className={styles["chat-message-avatar-icon"]} />
+                            ) : (
+                              <AntdAvatar src='/2.jpg' alt="app icon" className={styles["chat-message-avatar-icon"]} />
+                            )
                           )}
                         </>
                       )}

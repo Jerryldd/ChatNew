@@ -20,6 +20,7 @@ import { showConfirm, Selector } from "./ui-lib";
 import { Layout, Menu, Input, Button, Avatar } from 'antd';
 import { AppstoreOutlined, EditOutlined, DeleteOutlined, PushpinOutlined, PlusOutlined, RobotOutlined } from '@ant-design/icons';
 import SubMenu from "antd/es/menu/SubMenu";
+import { log } from "console";
 
 const ChatList = dynamic(async () => (await import("./chat-list")).ChatList, {
   loading: () => null,
@@ -211,16 +212,13 @@ export function SideBar(props: { className?: string }) {
   ];
   const [selectedApp, setSelectedApp] = useState<string>('');
   const [activeApp, setActiveApp] = useState<string>(''); // 新增状态
-  const [conversations, setConversations] = useState<string[]>([]);
-  const handleNewChatClick = (appName: string) => {
-    if (config.dontShowMaskSplashScreen) {
-      chatStore.newSession();
+  const [conversations, setConversations] = useState<string>('');
+  const handleNewChatClick = (appName: string, appIcon: string) => {
+      chatStore.newSession(appName,appIcon);
       navigate(Path.Chat);
       setSelectedApp(appName);
       setActiveApp(appName);
-    } else {
-      navigate(Path.NewChat);
-    }
+      setConversations('nihao');
   };
   return (
     <SideBarContainer
@@ -243,12 +241,12 @@ export function SideBar(props: { className?: string }) {
           key="myApps"
           title="我的应用"
           icon={<img src='/3.jpg' alt='我的应用' style={{ width: '1.2rem', height: '1.2rem', marginRight: '0px' }} />}
-          style={{ marginBottom: '0.9375rem'}}
+          style={{ marginBottom: '0.9375rem', width: '200px'}}
         >
           {apps.map((app) => (
             <Menu.Item
               key={app.name}
-              onClick={() => handleNewChatClick(app.name)}
+              onClick={() => handleNewChatClick(app.name,app.icon)}
               style={{
                 marginBottom: '12px',
                 width: '200px',
@@ -281,6 +279,7 @@ export function SideBar(props: { className?: string }) {
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               navigate(Path.Home);
+
             }
           }}
         >

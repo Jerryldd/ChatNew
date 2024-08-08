@@ -64,6 +64,8 @@ export interface ChatSession {
   clearContextIndex?: number;
 
   mask: Mask;
+  appName?: string; 
+  appIcon?: string;
 }
 
 export const DEFAULT_TOPIC = Locale.Store.DefaultTopic;
@@ -216,7 +218,7 @@ export const useChatStore = createPersistStore(
         });
       },
 
-      newSession(mask?: Mask) {
+      newSession(appName?: string, appIcon?: string,mask?: Mask) {
         const session = createEmptySession();
 
         if (mask) {
@@ -232,7 +234,13 @@ export const useChatStore = createPersistStore(
           };
           session.topic = mask.name;
         }
-
+        if (appName) {
+          session.appName = appName; // 保存应用名称
+        }
+      
+        if (appIcon) {
+          session.appIcon = appIcon; // 保存应用图标
+        }
         set((state) => ({
           currentSessionIndex: 0,
           sessions: [session].concat(state.sessions),
