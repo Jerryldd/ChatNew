@@ -1,0 +1,40 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 0 16px;
+  border-bottom: 1px solid #cdc8c8;
+
+  .left-section {
+    display: flex;
+    align-items: center;
+
+    .logo {
+      height: 40px;
+      margin-right: 4px;
+      object-fit: contain;
+    }
+
+    .title {
+      color: rgb(0, 0, 0);
+      font-size: 24px;
+      font-weight: bold;
+    }
+  }
+
+  .right-section {
+    display: flex;
+    align-items: center;
+
+    .anticon {
+      color: rgb(143, 143, 143);
+      margin-right: 16px;
+    }
+
+    .ant-avatar {
+      margin-left: 16px;
+      margin-bottom: 10px;
+    }
+  }
+}
