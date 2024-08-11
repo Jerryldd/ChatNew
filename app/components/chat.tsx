@@ -51,6 +51,7 @@ import {
   useAppConfig,
   DEFAULT_TOPIC,
   ModelType,
+  useFlowStore,
 } from "../store";
 
 import {
@@ -94,6 +95,7 @@ import {
   UNFINISHED_INPUT,
   ServiceProvider,
   Plugin,
+  Langflow,
 } from "../constant";
 import { Avatar } from "./emoji";
 import { ContextPrompts, MaskAvatar, MaskConfig } from "./mask";
@@ -104,7 +106,7 @@ import { ExportMessageModal } from "./exporter";
 import { getClientConfig } from "../config/client";
 import { useAllModels } from "../utils/hooks";
 import { MultimodalContent } from "../client/api";
-import { Avatar as AntdAvatar } from 'antd';
+import { Avatar as AntdAvatar } from "antd";
 
 const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
   loading: () => <LoadingIcon />,
@@ -454,33 +456,11 @@ export function ChatActions(props: {
   const stopAll = () => ChatControllerPool.stopAll();
 
   // switch model
-  const currentModel = chatStore.currentSession().mask.modelConfig.model;
+  const currentModel = chatStore.currentSession().mask.modelConfig;
   const currentProviderName =
     chatStore.currentSession().mask.modelConfig?.providerName ||
     ServiceProvider.OpenAI;
-  const allModels = useAllModels();
-  const models = useMemo(() => {
-    const filteredModels = allModels.filter((m) => m.available);
-    const defaultModel = filteredModels.find((m) => m.isDefault);
-
-    if (defaultModel) {
-      const arr = [
-        defaultModel,
-        ...filteredModels.filter((m) => m !== defaultModel),
-      ];
-      return arr;
-    } else {
-      return filteredModels;
-    }
-  }, [allModels]);
-  const currentModelName = useMemo(() => {
-    const model = models.find(
-      (m) =>
-        m.name == currentModel &&
-        m?.provider?.providerName == currentProviderName,
-    );
-    return model?.displayName ?? "";
-  }, [models, currentModel, currentProviderName]);
+  const flowModels = useFlowStore((state) => state.models());
   const [showModelSelector, setShowModelSelector] = useState(false);
   const [showPluginSelector, setShowPluginSelector] = useState(false);
   const [showUploadImage, setShowUploadImage] = useState(false);
@@ -491,7 +471,7 @@ export function ChatActions(props: {
     chatStore.currentSession().mask.modelConfig?.size ?? "1024x1024";
 
   useEffect(() => {
-    const show = isVisionModel(currentModel);
+    const show = isVisionModel(currentModel.model);
     setShowUploadImage(show);
     if (!show) {
       props.setAttachImages([]);
@@ -500,22 +480,20 @@ export function ChatActions(props: {
 
     // if current model is not available
     // switch to first available model
-    const isUnavaliableModel = !models.some((m) => m.name === currentModel);
-    if (isUnavaliableModel && models.length > 0) {
+    const isUnavaliableModel = !flowModels.some(
+      (m) => m.name === currentModel.model,
+    );
+    if (isUnavaliableModel && flowModels.length > 0) {
       // show next model to default model if exist
-      let nextModel = models.find((model) => model.isDefault) || models[0];
+      let nextModel = flowModels[0];
       chatStore.updateCurrentSession((session) => {
         session.mask.modelConfig.model = nextModel.name;
         session.mask.modelConfig.providerName = nextModel?.provider
           ?.providerName as ServiceProvider;
       });
-      showToast(
-        nextModel?.provider?.providerName == "ByteDance"
-          ? nextModel.displayName
-          : nextModel.name,
-      );
+      showToast(nextModel.displayName || nextModel.name);
     }
-  }, [chatStore, currentModel, models]);
+  }, [chatStore, currentModel]);
 
   return (
     <div className={styles["chat-input-actions"]}>
@@ -595,14 +573,14 @@ export function ChatActions(props: {
 
       <ChatAction
         onClick={() => setShowModelSelector(true)}
-        text={currentModelName}
+        text={currentModel.displayName}
         icon={<RobotIcon />}
       />
 
       {showModelSelector && (
         <Selector
           defaultSelectedValue={`${currentModel}@${currentProviderName}`}
-          items={models.map((m) => ({
+          items={flowModels.map((m) => ({
             title: `${m.displayName}${
               m?.provider?.providerName
                 ? "(" + m?.provider?.providerName + ")"
@@ -621,7 +599,7 @@ export function ChatActions(props: {
               session.mask.syncGlobalConfig = false;
             });
             if (providerName == "ByteDance") {
-              const selectedModel = models.find(
+              const selectedModel = flowModels.find(
                 (m) =>
                   m.name == model && m?.provider?.providerName == providerName,
               );
@@ -633,7 +611,7 @@ export function ChatActions(props: {
         />
       )}
 
-      {isDalle3(currentModel) && (
+      {isDalle3(currentModel.model) && (
         <ChatAction
           onClick={() => setShowSizeSelector(true)}
           text={currentSize}
@@ -766,7 +744,7 @@ function _Chat() {
 
   const chatStore = useChatStore();
   const session = chatStore.currentSession();
-  const appIcon = session.appIcon || "default-icon-url";
+  const appIcon = "/1.jpg";
   const config = useAppConfig();
   const fontSize = config.fontSize;
   const fontFamily = config.fontFamily;
@@ -1446,12 +1424,18 @@ function _Chat() {
                         <>
                           {["system"].includes(message.role) ? (
                             <Avatar avatar="2699-fe0f" />
+                          ) : appIcon ? (
+                            <AntdAvatar
+                              src={appIcon}
+                              alt="app icon"
+                              className={styles["chat-message-avatar-icon"]}
+                            />
                           ) : (
-                            appIcon ? (
-                              <AntdAvatar src={appIcon} alt="app icon" className={styles["chat-message-avatar-icon"]} />
-                            ) : (
-                              <AntdAvatar src='/2.jpg' alt="app icon" className={styles["chat-message-avatar-icon"]} />
-                            )
+                            <AntdAvatar
+                              src="/2.jpg"
+                              alt="app icon"
+                              className={styles["chat-message-avatar-icon"]}
+                            />
                           )}
                         </>
                       )}

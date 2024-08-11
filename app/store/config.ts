@@ -1,6 +1,7 @@
 import { LLMModel } from "../client/api";
 import { DalleSize } from "../typing";
 import { getClientConfig } from "../config/client";
+import { Component } from "@/app/store/flow";
 import {
   DEFAULT_INPUT_TEMPLATE,
   DEFAULT_MODELS,
@@ -52,11 +53,13 @@ export const DEFAULT_CONFIG = {
   modelConfig: {
     model: "gpt-3.5-turbo" as ModelType,
     providerName: "OpenAI" as ServiceProvider,
+    displayName: "OpenAI GPT-3.5 Turbo",
     temperature: 0.5,
     top_p: 1,
     max_tokens: 4000,
     presence_penalty: 0,
     frequency_penalty: 0,
+    components: [] as Component[],
     sendMemory: true,
     historyMessageCount: 4,
     compressMessageLengthThreshold: 1000,

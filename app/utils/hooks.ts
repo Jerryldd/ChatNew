@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useAccessStore, useAppConfig } from "../store";
+import { useAccessStore, useAppConfig, useFlowStore } from "../store";
 import { collectModelsWithDefaultModel } from "./model";
 
 export function useAllModels() {

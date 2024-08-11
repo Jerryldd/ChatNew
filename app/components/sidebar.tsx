@@ -5,22 +5,37 @@ import AddIcon from "../icons/add.svg";
 import DeleteIcon from "../icons/delete.svg";
 import DragIcon from "../icons/drag.svg";
 import Locale from "../locales";
-import { useAppConfig, useChatStore } from "../store";
+import {
+  getRunFlowRequestBody,
+  useFlowStore,
+  useAppConfig,
+  useChatStore,
+  Flow,
+} from "../store";
 import {
   DEFAULT_SIDEBAR_WIDTH,
   MAX_SIDEBAR_WIDTH,
   MIN_SIDEBAR_WIDTH,
   NARROW_SIDEBAR_WIDTH,
   Path,
+  ServiceProvider,
 } from "../constant";
 import { useNavigate } from "react-router-dom";
 import { isIOS, useMobileScreen } from "../utils";
 import dynamic from "next/dynamic";
 import { showConfirm, Selector } from "./ui-lib";
-import { Layout, Menu, Input, Button, Avatar } from 'antd';
-import { AppstoreOutlined, EditOutlined, DeleteOutlined, PushpinOutlined, PlusOutlined, RobotOutlined } from '@ant-design/icons';
+import { Layout, Menu, Input, Button, Avatar } from "antd";
+import {
+  AppstoreOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  PushpinOutlined,
+  PlusOutlined,
+  RobotOutlined,
+} from "@ant-design/icons";
 import SubMenu from "antd/es/menu/SubMenu";
 import { log } from "console";
+import { createEmptyMask } from "@/app/store/mask";
 
 const ChatList = dynamic(async () => (await import("./chat-list")).ChatList, {
   loading: () => null,
@@ -158,10 +173,22 @@ export function SideBarHeader(props: {
         <div className={styles["sidebar-logo"] + " no-dark"}>{logo}</div>
       </div>
       <div className={styles["header-buttons"]}>
-        <Button type="primary" className={styles.createButton} onClick={() => {console.log("按钮1点击");}}>
+        <Button
+          type="primary"
+          className={styles.createButton}
+          onClick={() => {
+            console.log("按钮1点击");
+          }}
+        >
           <PlusOutlined /> 创建应用
         </Button>
-        <Button type="primary" className={styles.marketButton} onClick={() => {console.log("按钮2点击");}}>
+        <Button
+          type="primary"
+          className={styles.marketButton}
+          onClick={() => {
+            console.log("按钮2点击");
+          }}
+        >
           <RobotOutlined /> 创新广场
         </Button>
       </div>
@@ -197,89 +224,121 @@ export function SideBarTail(props: {
 
 export function SideBar(props: { className?: string }) {
   useHotKey();
+  const [refreshFlows, flows, modelTweaks, createFlowMask] = useFlowStore(
+    (state) => [
+      state.refreshFlows,
+      state.flows,
+      state.modelTweaks,
+      state.createFlowMask,
+    ],
+  );
   const { onDragStart, shouldNarrow } = useDragSideBar();
   const [showPluginSelector, setShowPluginSelector] = useState(false);
   const navigate = useNavigate();
   const config = useAppConfig();
   const chatStore = useChatStore();
 
- 
-  const apps = [
-    { name: 'iLink对话', icon: '/5.jpg' },
-    { name: 'Slinda', icon: '/6.jpg' },
-    { name: '文案助手', icon: '/7.jpg' },
-    { name: '绘画大师', icon: '/8.jpg' },
-  ];
-  const [selectedApp, setSelectedApp] = useState<string>('');
-  const [activeApp, setActiveApp] = useState<string>(''); // 新增状态
-  const [conversations, setConversations] = useState<string>('');
-  const handleNewChatClick = (appName: string, appIcon: string) => {
-      chatStore.newSession(appName,appIcon);
-      navigate(Path.Chat);
-      setSelectedApp(appName);
-      setActiveApp(appName);
-      setConversations('nihao');
+  useEffect(() => {
+    refreshFlows();
+
+    const interval = setInterval(() => {
+      refreshFlows();
+    }, 30 * 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+
+  const [selectedApp, setSelectedApp] = useState<string>("");
+  const [activeApp, setActiveApp] = useState<string>(""); // 新增状态
+
+  const handleNewChatClick = (flow: Flow) => {
+    const mask = createFlowMask(flow.flowId);
+    chatStore.newSession(mask);
+    navigate(Path.Chat);
+    setSelectedApp(flow.flowId);
+    setActiveApp(flow.flowId);
   };
+
   return (
     <SideBarContainer
       onDragStart={onDragStart}
       shouldNarrow={shouldNarrow}
       {...props}
     >
-      <SideBarHeader
-        shouldNarrow={shouldNarrow}
-      >
-
+      <SideBarHeader shouldNarrow={shouldNarrow}>
         <div className={styles["sidebar-header-bar"]}>
           <div className={styles["sidebar-action"]}>
-          <Menu
-        mode="inline"
-        selectedKeys={[selectedApp]}
-        style={{ borderRight: 0, fontSize: '1.1rem', padding: '0.625rem 0' }}
-      >
-        <SubMenu
-          key="myApps"
-          title="我的应用"
-          icon={<img src='/3.jpg' alt='我的应用' style={{ width: '1.2rem', height: '1.2rem', marginRight: '0px' }} />}
-          style={{ marginBottom: '0.9375rem', width: '200px'}}
-        >
-          {apps.map((app) => (
-            <Menu.Item
-              key={app.name}
-              onClick={() => handleNewChatClick(app.name,app.icon)}
+            <Menu
+              mode="inline"
+              selectedKeys={[selectedApp]}
               style={{
-                marginBottom: '12px',
-                width: '200px',
-                borderLeft: app.name === activeApp ? '4px solid #6286de' : '1px solid #cdc8c8',
-                fontSize: '16px',
-                marginLeft: '2.25rem',
-                borderRadius: '0px',
-                paddingLeft: '18px'
+                borderRight: 0,
+                fontSize: "1.1rem",
+                padding: "0.625rem 0",
               }}
             >
-              <Avatar src={app.icon} style={{ marginRight: '0.5rem' }} /> {app.name}
-            </Menu.Item>
-          ))}
-        </SubMenu>
-        <Menu.Item key="appMarket" style={{ marginBottom: '0.7rem' }} icon={<AppstoreOutlined style={{ fontSize: '1.25rem' }} />}>
-          应用广场
-        </Menu.Item>
-      </Menu>
+              <SubMenu
+                key="myApps"
+                title="我的应用"
+                icon={
+                  <img
+                    src="/3.jpg"
+                    alt="我的应用"
+                    style={{
+                      width: "1.2rem",
+                      height: "1.2rem",
+                      marginRight: "0px",
+                    }}
+                  />
+                }
+                style={{ marginBottom: "0.9375rem", width: "200px" }}
+              >
+                {flows.map((flow) => (
+                  <Menu.Item
+                    key={flow.flowName}
+                    onClick={() => handleNewChatClick(flow)}
+                    style={{
+                      marginBottom: "12px",
+                      width: "200px",
+                      borderLeft:
+                        flow.flowId === activeApp
+                          ? "4px solid #6286de"
+                          : "1px solid #cdc8c8",
+                      fontSize: "16px",
+                      marginLeft: "2.25rem",
+                      borderRadius: "0px",
+                      paddingLeft: "18px",
+                    }}
+                  >
+                    <Avatar src={"/1.jpg"} style={{ marginRight: "0.5rem" }} />{" "}
+                    {flow.flowName}
+                  </Menu.Item>
+                ))}
+              </SubMenu>
+              <Menu.Item
+                key="appMarket"
+                style={{ marginBottom: "0.7rem" }}
+                icon={<AppstoreOutlined style={{ fontSize: "1.25rem" }} />}
+              >
+                应用广场
+              </Menu.Item>
+            </Menu>
           </div>
         </div>
       </SideBarHeader>
       <div className={styles.section}>
         <div className={styles.searchHistory}>
           <Input placeholder="搜索历史记录" />
-          <Button type="text" className={styles.clearButton} >
-            <DeleteOutlined style={{color: '#bbbbbb',fontSize:'20px'}} />
+          <Button type="text" className={styles.clearButton}>
+            <DeleteOutlined style={{ color: "#bbbbbb", fontSize: "20px" }} />
           </Button>
         </div>
         <SideBarBody
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               navigate(Path.Home);
-
             }
           }}
         >

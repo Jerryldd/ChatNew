@@ -32,7 +32,6 @@ export function ChatItem(props: {
   narrow?: boolean;
   mask: Mask;
   appName?: string;
-
 }) {
   const draggableRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -80,10 +79,10 @@ export function ChatItem(props: {
             <>
               <div className={styles["chat-item-title"]}>{props.title}</div>
               <div className={styles["chat-item-info"]}>
+                {props.appName && <span>{props.appName}</span>}
                 <div className={styles["chat-item-count"]}>
                   {Locale.ChatItem.ChatItemCount(props.count)}
                 </div>
-                <span>{props.appName}</span>
                 <div className={styles["chat-item-date"]}>{props.time}</div>
               </div>
             </>
@@ -105,7 +104,7 @@ export function ChatItem(props: {
   );
 }
 
-export function ChatList(props: { narrow?: boolean}) {
+export function ChatList(props: { narrow?: boolean }) {
   const [sessions, selectedIndex, selectSession, moveSession] = useChatStore(
     (state) => [
       state.sessions,
@@ -155,6 +154,7 @@ export function ChatList(props: { narrow?: boolean}) {
                 onClick={() => {
                   navigate(Path.Chat);
                   selectSession(i);
+                  console.log(sessions[i].mask.modelConfig.model);
                 }}
                 onDelete={async () => {
                   if (
@@ -166,7 +166,7 @@ export function ChatList(props: { narrow?: boolean}) {
                 }}
                 narrow={props.narrow}
                 mask={item.mask}
-                appName={item.appName}
+                appName={item.mask.modelConfig.displayName}
               />
             ))}
             {provided.placeholder}

@@ -26,7 +26,7 @@ import { nanoid } from "nanoid";
 import { createPersistStore } from "../utils/store";
 import { collectModelsWithDefaultModel } from "../utils/model";
 import { useAccessStore } from "./access";
-import { isDalle3 } from "../utils";
+import { MaskConfig } from "@/app/components/mask";
 
 export type ChatMessage = RequestMessage & {
   date: string;
@@ -64,8 +64,6 @@ export interface ChatSession {
   clearContextIndex?: number;
 
   mask: Mask;
-  appName?: string; 
-  appIcon?: string;
 }
 
 export const DEFAULT_TOPIC = Locale.Store.DefaultTopic;
@@ -218,7 +216,7 @@ export const useChatStore = createPersistStore(
         });
       },
 
-      newSession(appName?: string, appIcon?: string,mask?: Mask) {
+      newSession(mask?: Mask) {
         const session = createEmptySession();
 
         if (mask) {
@@ -234,13 +232,7 @@ export const useChatStore = createPersistStore(
           };
           session.topic = mask.name;
         }
-        if (appName) {
-          session.appName = appName; // 保存应用名称
-        }
-      
-        if (appIcon) {
-          session.appIcon = appIcon; // 保存应用图标
-        }
+
         set((state) => ({
           currentSessionIndex: 0,
           sessions: [session].concat(state.sessions),
@@ -550,13 +542,8 @@ export const useChatStore = createPersistStore(
         const config = useAppConfig.getState();
         const session = get().currentSession();
         const modelConfig = session.mask.modelConfig;
-        // skip summarize when using dalle3?
-        if (isDalle3(modelConfig.model)) {
-          return;
-        }
 
-        const providerName = modelConfig.providerName;
-        const api: ClientApi = getClientApi(providerName);
+        const api: ClientApi = getClientApi(modelConfig.providerName);
 
         // remove error messages if any
         const messages = session.messages;
@@ -578,8 +565,8 @@ export const useChatStore = createPersistStore(
             messages: topicMessages,
             config: {
               model: getSummarizeModel(session.mask.modelConfig.model),
+              components: session.mask.modelConfig.components,
               stream: false,
-              providerName,
             },
             onFinish(message) {
               get().updateCurrentSession(

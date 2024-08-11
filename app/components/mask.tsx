@@ -87,6 +87,7 @@ export function MaskConfig(props: {
 
     const config = { ...props.mask.modelConfig };
     updater(config);
+    console.log("updateConfig", config);
     props.updateMask((mask) => {
       mask.modelConfig = config;
       // if user changed current session mask, it will disable auto sync

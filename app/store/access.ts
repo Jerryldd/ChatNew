@@ -51,9 +51,9 @@ const DEFAULT_STABILITY_URL = isApp
   ? DEFAULT_API_HOST + "/api/proxy/stability"
   : ApiPath.Stability;
 
-const DEFAULT_IFLYTEK_URL = isApp
-  ? DEFAULT_API_HOST + "/api/proxy/iflytek"
-  : ApiPath.Iflytek;
+const DEFAULT_LANGFLOW_URL = isApp
+  ? DEFAULT_API_HOST + "/api/proxy/langflow"
+  : ApiPath.Langflow;
 
 const DEFAULT_ACCESS_STATE = {
   accessCode: "",
@@ -98,6 +98,8 @@ const DEFAULT_ACCESS_STATE = {
   moonshotUrl: DEFAULT_MOONSHOT_URL,
   moonshotApiKey: "",
 
+  langflowUrl: DEFAULT_LANGFLOW_URL,
+
   //stability
   stabilityUrl: DEFAULT_STABILITY_URL,
   stabilityApiKey: "",
@@ -106,11 +108,6 @@ const DEFAULT_ACCESS_STATE = {
   tencentUrl: DEFAULT_TENCENT_URL,
   tencentSecretKey: "",
   tencentSecretId: "",
-
-  // iflytek
-  iflytekUrl: DEFAULT_IFLYTEK_URL,
-  iflytekApiKey: "",
-  iflytekApiSecret: "",
 
   // server config
   needCode: true,
@@ -167,9 +164,6 @@ export const useAccessStore = createPersistStore(
     isValidMoonshot() {
       return ensure(get(), ["moonshotApiKey"]);
     },
-    isValidIflytek() {
-      return ensure(get(), ["iflytekApiKey"]);
-    },
 
     isAuthorized() {
       this.fetch();
@@ -185,7 +179,6 @@ export const useAccessStore = createPersistStore(
         this.isValidAlibaba() ||
         this.isValidTencent ||
         this.isValidMoonshot() ||
-        this.isValidIflytek() ||
         !this.enabledAccessControl() ||
         (this.enabledAccessControl() && ensure(get(), ["accessCode"]))
       );
