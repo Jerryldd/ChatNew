@@ -88,10 +88,6 @@ export function auth(req: NextRequest, modelProvider: ModelProvider) {
       case ModelProvider.Moonshot:
         systemApiKey = serverConfig.moonshotApiKey;
         break;
-      case ModelProvider.Iflytek:
-        systemApiKey =
-          serverConfig.iflytekApiKey + ":" + serverConfig.iflytekApiSecret;
-        break;
       case ModelProvider.GPT:
       default:
         if (req.nextUrl.pathname.includes("azure/deployments")) {

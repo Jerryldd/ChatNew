@@ -105,7 +105,7 @@ export class LangflowApi implements LLMApi {
         () => controller.abort(),
         REQUEST_TIMEOUT_MS,
       );
-
+      console.log(shouldStream);
       if (
         shouldStream &&
         initResponse &&
